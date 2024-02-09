@@ -5,10 +5,8 @@ from flask import jsonify, request
 
 main = Blueprint('main', __name__)
 
-@main.route('/hello', methods=['GET'])
-def hello(): 
-	return jsonify({'message': 'Hello, World'})
 
+# get chamebres disponibles avec date_arrivee et date_depart
 @main.route('/api/chambres/disponibles', methods=['GET'])
 def chambres_disponibles():
   date_arrivee_str = request.args.get('date_arrivee')
@@ -41,6 +39,7 @@ def chambres_disponibles():
 
   return jsonify(chambres_disponibles)
 
+# réserver une chambre avec l'id du client, id de la chambre, date arrivé et date départ  
 @main.route('/api/reservations', methods=['POST'])
 def creer_reservation():
   id_client = data.get('id_client')
@@ -66,6 +65,7 @@ def creer_reservation():
   db.session.add(nouvelle_reservation)
   db.session.commit()
 
+  # envoyer un   
   return jsonify({'success': True, 'message': 'Réservation créée avec succès.'})
 
 @main.route('/api/reservations/<int:id>', methods=['DELETE'])
