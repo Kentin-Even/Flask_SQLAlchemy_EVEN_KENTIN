@@ -47,6 +47,7 @@ def creer_reservation():
   date_arrivee_str = data.get('date_arrivee')
   date_depart_str = data.get('date_depart')
 
+# envoier error si des champs sont manquants
   if not id_client or not id_chambre or not date_arrivee_str or not date_depart_str:
     return jsonify({'error': 'Toutes les données (id_client, id_chambre, date_arrivee, date_depart) sont nécessaires.'}), 400
 
@@ -54,32 +55,38 @@ def creer_reservation():
     date_arrivee = datetime.strptime(date_arrivee_str, '%Y-%m-%d')
     date_depart = datetime.strptime(date_depart_str, '%Y-%m-%d')
   except ValueError:
+    #envoie error sie la date est invalide
     return jsonify({'error': 'Format de date invalide. Utilisez le format YYYY-MM-DD.'}), 400
 
   reservations_existantes = Reservation.query.filter_by(id_chambre=id_chambre).all()
   for reservation in reservations_existantes:
     if date_arrivee < reservation.date_depart and date_depart > reservation.date_arrivee:
+    #  envoier error si la chambre est déjà réservée
       return jsonify({'error': 'La chambre est déjà réservée pour les dates demandées.'}), 400
 
   nouvelle_reservation = Reservation(id_client=id_client, id_chambre=id_chambre, date_arrivee=date_arrivee, date_depart=date_depart, statut='confirmée')
   db.session.add(nouvelle_reservation)
   db.session.commit()
 
-  # envoyer un   
+  # envoyer un message success pour dire que la chambre est réserver
   return jsonify({'success': True, 'message': 'Réservation créée avec succès.'})
 
+# supprime la reservation 
 @main.route('/api/reservations/<int:id>', methods=['DELETE'])
 def annuler_reservation(id):
   reservation = Reservation.query.get(id)
 
   if not reservation:
+    # envoie une error si il n'y pas de réservation
     return jsonify({'error': 'Réservation non trouvée.'}), 404
 
   db.session.delete(reservation)
   db.session.commit()
 
+# envoie le message success pour dire que la rédervation a bien été faite
   return jsonify({'success': True, 'message': 'Réservation annulée avec succès.'})
 
+#ajoute un chambre avec le numéro le type aussi que le prix de la chambre 
 @main.route('/api/chambres', methods=['POST'])
 def ajouter_chambre():
   numero = data.get('numero')
@@ -87,19 +94,23 @@ def ajouter_chambre():
   prix = data.get('prix')
 
   if not numero or not type_chambre or not prix:
+    # envoie une error si il manque un champs
       return jsonify({'error': 'Toutes les données (numero, type, prix) sont nécessaires.'}), 400
 
   nouvelle_chambre = Chambre(numero=numero, type=type_chambre, prix=prix)
   db.session.add(nouvelle_chambre)
   db.session.commit()
 
+# envoie les success si la chambre a bien été ajouter 
   return jsonify({'success': True, 'message': 'Chambre ajoutée avec succès.'})
 
+# les détaille d'une chambre selon sont id 
 @main.route('/api/chambres/<int:id>', methods=['PUT'])
 def modifier_chambre(id):
   chambre = Chambre.query.get(id)
 
   if not chambre:
+    # envoie une error si la chambre n'existe pas 
       return jsonify({'error': 'Chambre non trouvée.'}), 404
 
   chambre.numero = data.get('numero', chambre.numero)
@@ -107,17 +118,20 @@ def modifier_chambre(id):
   chambre.prix = data.get('prix', chambre.prix)
   db.session.commit()
 
+# envoie success si la chambre a bien été modifier
   return jsonify({'success': True, 'message': 'Chambre mise à jour avec succès.'})
 
 
+# supprimer une chambre 
 @main.route('/api/chambres/<int:id>', methods=['DELETE'])
 def supprimer_chambre(id):
   chambre = Chambre.query.get(id)
 
   if not chambre:
+    # envoie une erreur si il n'y pas de chambre
     return jsonify({'error': 'Chambre non trouvée.'}), 404
 
   db.session.delete(chambre)
   db.session.commit()
-
+# envoie success si la chambre a bien été supprimer
   return jsonify({'success': True, 'message': 'Chambre supprimée avec succès.'})
