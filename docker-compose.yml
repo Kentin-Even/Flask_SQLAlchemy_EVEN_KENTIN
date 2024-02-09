@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "5003:5000"
+    volumes:
+      - ./src:/app/src/tpFlask
+      - flask_migrations:/app/src/migrations
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    restart: always 
+    platform: linux/x86_64
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: tpFlask
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
+  flask_migrations:
